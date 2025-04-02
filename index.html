@@ -1,5 +1,8 @@
 <div class="chinese-gender-calculator">
   <h3>Chinese Calendar Baby Gender Predictor 2025</h3>
+  <div class="usage-counter">
+    <span id="counter-label">Loading usage stats...</span>
+  </div>
   <form id="gender-predictor-form">
     <div class="form-group">
       <label for="mother-dob">Your Date of Birth:</label>
@@ -36,6 +39,21 @@
       text-align: center;
       margin-top: 0;
       margin-bottom: 20px;
+    }
+    
+    .usage-counter {
+      text-align: center;
+      margin-bottom: 15px;
+      color: #7f8c8d;
+      font-size: 14px;
+      background: #eee;
+      padding: 5px;
+      border-radius: 15px;
+      display: inline-block;
+      margin: 0 auto 15px;
+      position: relative;
+      left: 50%;
+      transform: translateX(-50%);
     }
 
     .form-group {
@@ -119,6 +137,13 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
+      // Counter key - create a unique namespace for your counter
+      const COUNTER_KEY = 'baby-gender-predictor';
+      const counterLabel = document.getElementById('counter-label');
+      
+      // Initialize the counter by fetching the current value
+      fetchCounter();
+      
       // Force browser to use English locale for date inputs
       document.querySelectorAll('input[type="date"]').forEach(function(input) {
         input.setAttribute('lang', 'en');
@@ -201,6 +226,9 @@
           }
           
           resultContainer.style.display = 'block';
+          
+          // Increment the counter after successful prediction
+          incrementCounter();
         } catch (error) {
           console.error("Prediction error:", error);
           alert("An error occurred while making the prediction. Please try again.");
@@ -252,6 +280,45 @@
         // Get prediction from chart
         const prediction = chart[motherAge][monthIndex];
         return prediction === 'B' ? 'boy' : 'girl';
+      }
+      
+      // Function to fetch the current counter value
+      function fetchCounter() {
+        fetch(`https://api.countapi.xyz/get/${COUNTER_KEY}`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.value !== undefined) {
+              counterLabel.textContent = `This calculator has been used ${data.value.toLocaleString()} times`;
+            } else {
+              // Initialize the counter if it doesn't exist
+              fetch(`https://api.countapi.xyz/create?namespace=baby-gender-predictor&key=${COUNTER_KEY}&value=0`)
+                .then(() => {
+                  counterLabel.textContent = "This calculator has been used 0 times";
+                })
+                .catch(error => {
+                  console.error("Error initializing counter:", error);
+                  counterLabel.textContent = "Usage stats unavailable";
+                });
+            }
+          })
+          .catch(error => {
+            console.error("Error fetching counter:", error);
+            counterLabel.textContent = "Usage stats unavailable";
+          });
+      }
+      
+      // Function to increment the counter
+      function incrementCounter() {
+        fetch(`https://api.countapi.xyz/hit/${COUNTER_KEY}`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.value !== undefined) {
+              counterLabel.textContent = `This calculator has been used ${data.value.toLocaleString()} times`;
+            }
+          })
+          .catch(error => {
+            console.error("Error incrementing counter:", error);
+          });
       }
     });
   </script>
